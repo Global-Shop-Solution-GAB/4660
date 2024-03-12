@@ -1,0 +1,168 @@
+Program.Sub.ScreenSU.Start
+gui.F_Main..create
+gui.F_Main..caption("Document Group WO PRint")
+gui.F_Main..size(3840,2685)
+gui.F_Main..position(0,0)
+gui.F_Main..event(unload,exit)
+gui.F_Main..alwaysontop(False)
+gui.F_Main..fontname("Arial")
+gui.F_Main..fontsize(8)
+gui.F_Main..forecolor(0)
+gui.F_Main..fontstyle(False,False,False,False,False)
+gui.F_Main..BackColor(-2147483633)
+gui.F_Main..controlbox(True)
+gui.F_Main..maxbutton(False)
+gui.F_Main..minbutton(True)
+gui.F_Main..mousepointer(0)
+gui.F_Main..moveable(True)
+gui.F_Main..sizeable(False)
+gui.F_Main..ShowInTaskBar(True)
+gui.F_Main..titlebar(True)
+gui.F_Main.frmControls.create(frame)
+gui.F_Main.frmControls.caption("")
+gui.F_Main.frmControls.size(4500,435)
+gui.F_Main.frmControls.position(100,1715)
+gui.F_Main.frmControls.visible(True)
+gui.F_Main.frmControls.borderstyle(0)
+gui.F_Main.frmControls.fontname("Arial")
+gui.F_Main.frmControls.fontsize(8)
+gui.F_Main.cmdSave.create(button)
+gui.F_Main.cmdSave.caption("Save")
+gui.F_Main.cmdSave.visible(True)
+gui.F_Main.cmdSave.size(855,375)
+gui.F_Main.cmdSave.zorder(0)
+gui.F_Main.cmdSave.position(0,0)
+gui.F_Main.cmdSave.enabled(true)
+gui.F_Main.cmdSave.parent("frmcontrols")
+gui.F_Main.cmdSave.fontname("Arial")
+gui.F_Main.cmdSave.fontsize(8)
+gui.F_Main.cmdSave.event(click,cmdsave_click)
+gui.F_Main.cmdClear.create(button)
+gui.F_Main.cmdClear.caption("Clear")
+gui.F_Main.cmdClear.visible(True)
+gui.F_Main.cmdClear.size(855,375)
+gui.F_Main.cmdClear.zorder(0)
+gui.F_Main.cmdClear.position(945,0)
+gui.F_Main.cmdClear.enabled(True)
+gui.F_Main.cmdClear.parent("frmcontrols")
+gui.F_Main.cmdClear.fontname("Arial")
+gui.F_Main.cmdClear.fontsize(8)
+gui.F_Main.cmdClear.event(click,cmdClear_click)
+gui.F_Main.lbl1.create(label,"ID",True,2490,255,1,100,145,True,0,Arial,8,-2147483633,0)
+gui.F_Main.txtGRP_ID.create(textbox,"",True,870,315,0,100,400,False,0,Arial,8,-2147483643,1)
+gui.F_Main.cmdGRP_ID.create(button)
+gui.F_Main.cmdGRP_ID.caption("^")
+gui.F_Main.cmdGRP_ID.visible(True)
+gui.F_Main.cmdGRP_ID.size(315,315)
+gui.F_Main.cmdGRP_ID.zorder(0)
+gui.F_Main.cmdGRP_ID.position(1000,400)
+gui.F_Main.cmdGRP_ID.enabled(True)
+gui.F_Main.cmdGRP_ID.fontname("Arial")
+gui.F_Main.cmdGRP_ID.fontsize(8)
+gui.F_Main.cmdGRP_ID.event(click,cmdGRP_ID_click)
+gui.F_Main.cmdGRP_ID.BackColor(-2147483643)
+gui.F_Main.lbl2.create(label,"Name",True,2490,255,1,1430,160,True,0,Arial,8,-2147483633,0)
+gui.F_Main.txtGRP_NAME.create(textbox,"",True,2010,315,0,1400,400,True,0,Arial,8,-2147483643,1)
+gui.F_Main.txtGRP_NAME.maxLength(50)
+gui.F_Main.lbl3.create(label,"Description",True,2490,255,1,100,800,True,0,Arial,8,-2147483633,0)
+gui.F_Main.txtGRP_Desc.create(textbox,"",True,3330,315,0,85,1045,True,0,Arial,8,-2147483643,1)
+gui.F_Main.txtGRP_Desc.maxLength(100)
+gui.F_Main.chkPrint.create(checkbox)
+gui.F_Main.chkPrint.caption("Print Document as WO Print")
+gui.F_Main.chkPrint.visible(True)
+gui.F_Main.chkPrint.size(2535,255)
+gui.F_Main.chkPrint.zorder(0)
+gui.F_Main.chkPrint.position(90,1400)
+gui.F_Main.chkPrint.enabled(True)
+gui.F_Main.chkPrint.alignment(0)
+gui.F_Main.chkPrint.fontname("Arial")
+gui.F_Main.chkPrint.fontsize(8)
+
+
+Program.Sub.ScreenSU.End
+
+Program.Sub.Preflight.Start
+
+Program.Sub.Preflight.End
+
+Program.sub.Main.start
+'Executed from user hook off menu
+'JD
+
+Gui.F_main..show
+F.ODBC.Connection!con.OpenConnection(V.Ambient.PDSN,V.Ambient.PUser,V.Ambient.PPass)
+
+Program.sub.main.end
+
+program.sub.cmdGRP_ID_click.start
+V.Local.sCol.Declare(String)
+V.Local.sWidth.Declare(String)
+V.Local.sret.Declare(String)
+V.Local.squery.Declare(String)
+F.Intrinsic.String.Split("GRP_ID*!*GRP_NAME*!*GRP_Desc","*!*",V.Local.sCol)
+F.Intrinsic.String.Split("800*!*2000*!*2800","*!*",V.Local.swidth)
+V.Local.squery.Set("SELECT GRP_ID, GRP_NAME, GRP_Desc FROM ATG_DOC_GRP ORDER BY GRP_ID")
+F.intrinsic.UI.Browser("SELECT","con",V.Local.squery,V.Local.sCol,V.Local.sWidth,400,600,V.Local.sret)
+F.Intrinsic.Control.If(V.Local.sret,<>,"***CANCEL***")
+	F.Intrinsic.string.Split(V.Local.sret,"*!*",V.Local.sret)
+
+	Gui.F_Main.txtGRP_ID.text(V.local.sret(0))
+	Gui.F_Main.txtGRP_NAME.text(V.local.sret(1).Trim)
+	Gui.F_Main.txtGRP_Desc.text(V.local.sret(2).trim)
+	F.Intrinsic.String.Concat("SELECT * FROM ATG_PRINT_DOC_GRP WHERE GRP_ID= '",V.screen.f_main!txtGRP_ID.text,"' AND TYPE = 1 ",V.Local.squery)
+	F.ODBC.Connection!con.OpenRecordsetRO("rst",V.Local.squery)
+	F.Intrinsic.Control.If(V.ODBC.con!rst.EOF,=,False)
+		F.Intrinsic.Control.If(V.ODBC.con!rst.FieldVal!PRINT_FLAG,=,True)
+			Gui.F_Main.chkPrint.Value(1)
+		F.Intrinsic.Control.Else
+			Gui.F_Main.chkPrint.Value(0)
+		F.Intrinsic.Control.endif
+	F.Intrinsic.Control.Else
+		Gui.F_Main.chkPrint.Value(0)
+	F.Intrinsic.Control.EndIf
+	F.ODBC.con!rst.Close
+F.Intrinsic.Control.EndIf
+
+program.sub.cmdGRP_ID_click.end
+
+program.sub.cmdSave_click.start
+V.Local.sQuery.Declare(String)
+F.Intrinsic.Control.If(V.Screen.F_Main!txtGRP_ID.Text,=,"")
+	F.Intrinsic.Control.ExitSub
+F.Intrinsic.Control.EndIf
+
+F.Intrinsic.String.Concat("SELECT * FROM ATG_PRINT_DOC_GRP WHERE GRP_ID= ",V.screen.f_main!txtGRP_ID.text," AND TYPE = 1",V.Local.squery)
+F.ODBC.Connection!con.OpenRecordsetRW("rst",V.Local.sQuery)
+F.Intrinsic.Control.If(V.Odbc.con!rst.EOf,=,True)
+	F.ODBC.con!rst.AddNew
+	F.ODBC.con!rst.Set!GRP_ID(V.Screen.F_Main!txtGRP_ID.Text)
+	F.ODBC.con!rst.Set!TYPE(1)
+F.Intrinsic.Control.EndIf
+F.Intrinsic.Control.If(V.Screen.F_Main!chkPrint.Value,=,1)
+	F.ODBC.con!rst.Set!PRINT_FLAG(True)
+F.Intrinsic.Control.Else
+	F.ODBC.con!rst.Set!PRINT_FLAG(False)
+F.Intrinsic.Control.EndIf
+
+F.ODBC.con!rst.Update
+F.ODBC.con!rst.Close
+F.Intrinsic.UI.Msgbox("Group Saved")
+F.Intrinsic.Control.CallSub(Cmdclear_click)
+
+
+program.sub.cmdSave_click.end
+
+program.sub.cmdClear_click.start
+Gui.f_main.txtGRP_ID.text("")
+Gui.f_main.txtGRP_NAME.text("")
+Gui.f_main.txtGRP_Desc.text("")
+Gui.F_Main.chkPrint.Value(0)
+
+program.sub.cmdClear_click.end
+
+Program.sub.exit.start
+F.ODBC.Connection!con.close
+F.intrinsic.control.end
+Program.sub.exit.end
+
+
