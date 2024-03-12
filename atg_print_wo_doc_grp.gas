@@ -1,0 +1,80 @@
+Program.Sub.ScreenSU.Start
+Program.Sub.ScreenSU.End
+
+Program.Sub.Preflight.Start
+
+Program.Sub.Preflight.End
+
+Program.Sub.Main.Start
+'Hook 16090
+V.Local.iLinkID.Declare(Long)
+V.Local.iDocID.Declare(Long)
+V.Local.iGrpID.Declare(Long)
+V.Local.sQuery.Declare(String)
+V.Local.stemp.Declare(String)
+V.Local.sRpt.Declare(String)
+
+'changed the check from report id to calling program.  This allows the user to have custom reports identified for different customers, and this script will still work.
+f.Intrinsic.Control.If(v.Passed.CALLING-PGM,<>,"BJ020LZ")
+	F.Intrinsic.Control.End
+
+f.Intrinsic.Control.EndIf
+
+'F.Intrinsic.Control.If(V.Passed.009001,<>,"001811")
+'	F.Intrinsic.control.End
+
+'F.Intrinsic.Control.EndIf
+
+V.Local.sRpt.Set(V.Passed.009001)
+
+F.ODBC.Connection!con.OpenConnection(V.Ambient.PDSN,V.Ambient.PUser,V.Ambient.PPass)
+
+'mod trt 9/18/14
+'have to select part from job header since this bi table puts a space within the part, it makes it 21 characters.
+'mod dlf 3/27/2019  add the report ID as a parameter to prevent duplicate files from getting printed
+
+	F.Intrinsic.String.Concat("select DISTINCT PARTNO,Job,Suffix from BI_BAR_HEAD where terminal = '",V.Caller.Terminal,"' AND RPTID = '",V.Local.sRpt,"' ORDER BY JOB, SUFFIX",V.Local.sQuery)
+	F.ODBC.Connection!con.OpenRecordsetRO("rstPart",V.Local.sQuery)
+	F.Intrinsic.Control.DoUntil(V.ODBC.con!rstPart.EOF,=,True)
+		F.Intrinsic.String.Build("Select Part From V_JOB_Header Where Job = '{0}' And Suffix = '{1}'",V.ODBC.con!rstPart.FieldValTrim!Job,V.ODBC.con!rstPart.FieldValTrim!Suffix,V.Local.sQuery)
+		F.ODBC.Connection!con.OpenLocalRecordsetRO("rstJob",V.Local.sQuery)
+		F.Intrinsic.Control.If(V.ODBC.con!rstJob.EOF,<>,True)
+			F.ODBC.Connection!con.OpenRecordsetRO("rstGrpID","SELECT GRP_ID FROM ATG_PRINT_DOC_GRP WHERE TYPE = 1 and PRINT_FLAG = 1")
+	
+			'F.Global.DocumentControl.CreateReference(V.ODBC.con!rstJob.FieldValTrim!PART,30,V.Local.iLinkID)
+			F.Global.DocumentControl.GetLinkID(v.ODBC.con!rstJob.FieldValTrim!PART,30,v.Local.iLinkID)
+			F.Intrinsic.Control.If(V.Local.iLinkID,>,0)
+				
+				F.Intrinsic.Control.DoUntil(V.ODBC.con!rstGrpID.EOF,=,True)
+					F.Intrinsic.String.Concat("SELECT * FROM ATG_DOC_ASSOC WHERE LINK_ID = ",V.Local.iLinkID," AND GRP_ID = ",V.odbc.con!rstGrpID.FieldVal!Grp_ID,V.Local.sQuery)
+					F.ODBC.Connection!con.OpenRecordsetRO("rstDocID",V.Local.sQuery)
+													
+					F.Intrinsic.Control.DoUntil(V.ODBC.con!rstDocID.EOF,=,True)
+						F.Intrinsic.String.Right(V.ODBC.con!rstDocID.FieldValTrim!PATH,1,V.Local.stemp)
+						F.Intrinsic.Control.If(V.Local.stemp,=,"\")
+							F.Intrinsic.String.Concat(V.ODBC.con!rstDocID.FieldValTrim!PATH,V.ODBC.con!rstDocID.FieldValTrim!FILE,V.Local.stemp)
+						F.Intrinsic.Control.Else
+							F.Intrinsic.String.Concat(V.ODBC.con!rstDocID.FieldValTrim!PATH,"\",V.ODBC.con!rstDocID.FieldValTrim!FILE,V.Local.stemp)
+						F.Intrinsic.Control.endif												
+							F.Intrinsic.task.ShellExec(V.Caller.Handle,"PRINT",V.local.sTemp,"","",5)
+							f.Intrinsic.UI.SleepMS(3000)
+						F.ODBC.con!rstDocID.MoveNext
+					F.Intrinsic.control.loop
+					F.ODBC.con!rstDocID.Close
+					F.odbc.con!rstGrpID.MoveNext
+				F.Intrinsic.Control.Loop
+			f.Intrinsic.Control.Else
+				f.Intrinsic.Debug.stop
+			F.Intrinsic.Control.EndIf
+		F.Intrinsic.Control.EndIf
+		F.ODBC.con!rstJob.Close
+		F.ODBC.con!rstgrpid.Close
+		F.ODBC.con!rstPart.MoveNext
+	F.Intrinsic.Control.Loop
+F.ODBC.Connection!con.Close
+
+Program.Sub.Main.End
+
+Program.Sub.Comments.Start
+${$0$}$$}$$}$12:00:00 AM$}$False
+Program.Sub.Comments.End
